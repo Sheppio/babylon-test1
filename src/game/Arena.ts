@@ -13,7 +13,8 @@ import {
   Vector3,
 } from "@babylonjs/core";
 import { GridMaterial } from "@babylonjs/materials";
-import { ARENA_RADIUS, WALL_HEIGHT, type Obstacle } from "./constants";
+import { buildStadium } from "./Stadium";
+import { ARENA_RADIUS, RETAINING_WALL_HEIGHT, WALL_HEIGHT, type Obstacle } from "./constants";
 
 export interface ArenaData {
   obstacles: Obstacle[];
@@ -85,7 +86,7 @@ function buildBoundary(scene: Scene): Mesh {
     { diameter: ARENA_RADIUS * 2, height: WALL_HEIGHT, tessellation: 48, sideOrientation: Mesh.DOUBLESIDE },
     scene,
   );
-  wall.position.y = WALL_HEIGHT / 2;
+  wall.position.y = RETAINING_WALL_HEIGHT + WALL_HEIGHT / 2;
   const mat = new StandardMaterial("wallMat", scene);
   mat.diffuseColor = new Color3(0.02, 0.04, 0.05);
   mat.emissiveColor = new Color3(0.03, 0.1, 0.12);
@@ -100,7 +101,7 @@ function buildBoundary(scene: Scene): Mesh {
     const x = Math.cos(angle) * (ARENA_RADIUS - 0.15);
     const z = Math.sin(angle) * (ARENA_RADIUS - 0.15);
     const beam = MeshBuilder.CreateBox(`beam${i}`, { width: 0.25, depth: 0.25, height: WALL_HEIGHT }, scene);
-    beam.position.set(x, WALL_HEIGHT / 2, z);
+    beam.position.set(x, RETAINING_WALL_HEIGHT + WALL_HEIGHT / 2, z);
     const beamMat = new StandardMaterial(`beamMat${i}`, scene);
     const flicker = i % 5 === 0;
     beamMat.emissiveColor = flicker ? new Color3(1, 0.2, 0.3) : new Color3(0.15, 0.7, 0.85);
@@ -186,6 +187,7 @@ export function buildArena(scene: Scene): ArenaData {
   buildSky(scene);
   buildGround(scene);
   const boundaryWall = buildBoundary(scene);
+  buildStadium(scene);
   const shadowGenerator = buildLighting(scene);
   const { obstacles, casters } = buildPillars(scene, shadowGenerator);
 

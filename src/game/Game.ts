@@ -77,6 +77,7 @@ export class Game {
       onWaveClear: (_wave) => {
         this.hud.showBanner("WAVE CLEARED");
         this.audio.waveClear();
+        this.audio.crowdCheer();
         this.player.heal(18);
         this.pickups.spawnOne();
       },
@@ -154,6 +155,7 @@ export class Game {
 
   private startGame(): void {
     this.audio.unlock();
+    this.audio.startCrowdAmbience();
     this.score = 0;
     this.kills = 0;
     this.comboCount = 0;
@@ -176,6 +178,7 @@ export class Game {
   private gameOver(): void {
     this.state = "gameover";
     this.isFiring = false;
+    this.audio.stopCrowdAmbience();
     document.exitPointerLock();
     this.hud.showGameOver(this.score, this.waveManager.wave, this.kills);
   }

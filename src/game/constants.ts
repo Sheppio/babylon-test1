@@ -1,5 +1,6 @@
 export const ARENA_RADIUS = 34;
 export const WALL_HEIGHT = 8;
+export const RETAINING_WALL_HEIGHT = 2.6;
 export const PLAYER_EYE_HEIGHT = 1.7;
 export const PLAYER_RADIUS = 0.6;
 export const PLAYER_BASE_SPEED = 9.5;
