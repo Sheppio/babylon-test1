@@ -43,9 +43,9 @@ if (new URLSearchParams(location.search).has("debug")) {
     setInterval(() => {
       const info = game.debugInfo();
       const statusStr = Object.entries(info.meshStatus)
-        .map(([k, v]) => `${k}:${v}`)
-        .join(" | ");
-      liveBox.textContent = `meshes=${info.meshCount} lights=${info.lightCount} materials=${info.materialCount} fps=${info.fps.toFixed(0)}\n${statusStr}`;
+        .map(([k, v]) => `${k}: ${v}`)
+        .join("\n");
+      liveBox.textContent = `meshes=${info.meshCount} lights=${info.lightCount} materials=${info.materialCount} fps=${info.fps.toFixed(0)}\ncam ${info.camera}\n${statusStr}`;
     }, 1000);
   } catch (err) {
     logStatic(`CONSTRUCTOR THREW: ${(err as Error).message}\n${(err as Error).stack}`);

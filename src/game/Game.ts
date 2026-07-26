@@ -2,6 +2,7 @@ import {
   Color4,
   DefaultRenderingPipeline,
   Engine,
+  Frustum,
   GlowLayer,
   Ray,
   Scene,
@@ -198,12 +199,33 @@ export class Game {
     this.audio.enemyDeath();
   }
 
-  debugInfo(): { meshCount: number; lightCount: number; materialCount: number; fps: number; meshStatus: Record<string, string> } {
+  debugInfo(): {
+    meshCount: number;
+    lightCount: number;
+    materialCount: number;
+    fps: number;
+    meshStatus: Record<string, string>;
+    camera: string;
+  } {
     const names = ["pulseRing", "emblem", "risersMerged", "retainingWall", "ground", "trussStructureMerged"];
     const meshStatus: Record<string, string> = {};
+    const cam = this.player.camera;
+    cam.getViewMatrix(true);
+    const transform = cam.getTransformationMatrix();
+    const frustumPlanes = Frustum.GetPlanes(transform);
     for (const n of names) {
       const m = this.scene.getMeshByName(n);
-      meshStatus[n] = m ? (m.isEnabled() ? "ok" : "disabled") : "MISSING";
+      if (!m) {
+        meshStatus[n] = "MISSING";
+        continue;
+      }
+      const info = m.getBoundingInfo();
+      const center = info.boundingSphere.centerWorld;
+      const dist = Vector3.Distance(cam.globalPosition, center);
+      const inFrustum = m.isInFrustum(frustumPlanes);
+      meshStatus[n] =
+        `${m.isEnabled() ? "en" : "DIS"} pos(${center.x.toFixed(1)},${center.y.toFixed(1)},${center.z.toFixed(1)}) ` +
+        `d=${dist.toFixed(1)} r=${info.boundingSphere.radiusWorld.toFixed(1)} frustum=${inFrustum} vis=${m.isVisible} a=${(m.material as { alpha?: number })?.alpha ?? "n/a"}`;
     }
     return {
       meshCount: this.scene.meshes.length,
@@ -211,6 +233,7 @@ export class Game {
       materialCount: this.scene.materials.length,
       fps: this.engine.getFps(),
       meshStatus,
+      camera: `pos(${cam.globalPosition.x.toFixed(1)},${cam.globalPosition.y.toFixed(1)},${cam.globalPosition.z.toFixed(1)}) rot(${cam.rotation.x.toFixed(2)},${cam.rotation.y.toFixed(2)}) fov=${cam.fov.toFixed(2)} minZ=${cam.minZ} maxZ=${cam.maxZ}`,
     };
   }
 
