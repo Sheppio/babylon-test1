@@ -1,25 +1,28 @@
 import type { PlayerController } from "./PlayerController";
 
+interface JoystickHandle {
+  touchId: number | null;
+  centerX: number;
+  centerY: number;
+  maxRadius: number;
+}
+
 export class MobileControls {
   private player: PlayerController;
   private onFireStart: () => void;
   private onFireEnd: () => void;
 
-  private joystickTouchId: number | null = null;
-  private joystickCenterX = 0;
-  private joystickCenterY = 0;
-  private joystickMaxRadius = 50;
-
-  private lookTouchId: number | null = null;
-  private lookLastX = 0;
-  private lookLastY = 0;
-
   constructor(player: PlayerController, onFireStart: () => void, onFireEnd: () => void) {
     this.player = player;
     this.onFireStart = onFireStart;
     this.onFireEnd = onFireEnd;
-    this.setupJoystick();
-    this.setupLookZone();
+
+    // bindJoystick reports raw screen-space deflection (y positive = pushed down).
+    // Movement treats "up" as forward, so it inverts y; look treats "up" as look-up
+    // (pitch decreases), which is already the natural sign, so it passes y through.
+    this.bindJoystick("joystick-zone", "joystick-base", "joystick-thumb", (x, y) => this.player.setVirtualMove(x, -y));
+    this.bindJoystick("look-joystick-zone", "look-joystick-base", "look-joystick-thumb", (x, y) => this.player.setVirtualLook(x, y));
+
     this.setupButton(
       "jump-btn",
       () => this.player.setVirtualKey("Space", true),
@@ -32,83 +35,49 @@ export class MobileControls {
     );
   }
 
-  private setupJoystick(): void {
-    const zone = document.getElementById("joystick-zone");
-    const base = document.getElementById("joystick-base");
-    const thumb = document.getElementById("joystick-thumb");
+  private bindJoystick(zoneId: string, baseId: string, thumbId: string, onChange: (x: number, y: number) => void): void {
+    const zone = document.getElementById(zoneId);
+    const base = document.getElementById(baseId);
+    const thumb = document.getElementById(thumbId);
     if (!zone || !base || !thumb) return;
 
+    const handle: JoystickHandle = { touchId: null, centerX: 0, centerY: 0, maxRadius: 50 };
+
     const onStart = (e: TouchEvent): void => {
-      if (this.joystickTouchId !== null) return;
+      if (handle.touchId !== null) return;
       const touch = e.changedTouches[0];
-      this.joystickTouchId = touch.identifier;
+      handle.touchId = touch.identifier;
       const rect = base.getBoundingClientRect();
-      this.joystickCenterX = rect.left + rect.width / 2;
-      this.joystickCenterY = rect.top + rect.height / 2;
-      this.joystickMaxRadius = rect.width / 2 - 12;
+      handle.centerX = rect.left + rect.width / 2;
+      handle.centerY = rect.top + rect.height / 2;
+      handle.maxRadius = rect.width / 2 - 12;
       thumb.classList.add("active");
       e.preventDefault();
     };
 
     const onMove = (e: TouchEvent): void => {
-      if (this.joystickTouchId === null) return;
-      const touch = Array.from(e.changedTouches).find((t) => t.identifier === this.joystickTouchId);
+      if (handle.touchId === null) return;
+      const touch = Array.from(e.changedTouches).find((t) => t.identifier === handle.touchId);
       if (!touch) return;
-      const dx = touch.clientX - this.joystickCenterX;
-      const dy = touch.clientY - this.joystickCenterY;
+      const dx = touch.clientX - handle.centerX;
+      const dy = touch.clientY - handle.centerY;
       const dist = Math.hypot(dx, dy);
-      const clamped = Math.min(dist, this.joystickMaxRadius);
+      const clamped = Math.min(dist, handle.maxRadius);
       const angle = Math.atan2(dy, dx);
       const tx = Math.cos(angle) * clamped;
       const ty = Math.sin(angle) * clamped;
       thumb.style.transform = `translate(${tx}px, ${ty}px)`;
-      this.player.setVirtualMove(tx / this.joystickMaxRadius, -ty / this.joystickMaxRadius);
+      onChange(tx / handle.maxRadius, ty / handle.maxRadius);
       e.preventDefault();
     };
 
     const onEnd = (e: TouchEvent): void => {
-      const touch = Array.from(e.changedTouches).find((t) => t.identifier === this.joystickTouchId);
+      const touch = Array.from(e.changedTouches).find((t) => t.identifier === handle.touchId);
       if (!touch) return;
-      this.joystickTouchId = null;
+      handle.touchId = null;
       thumb.style.transform = "translate(0, 0)";
       thumb.classList.remove("active");
-      this.player.setVirtualMove(0, 0);
-    };
-
-    zone.addEventListener("touchstart", onStart, { passive: false });
-    zone.addEventListener("touchmove", onMove, { passive: false });
-    zone.addEventListener("touchend", onEnd);
-    zone.addEventListener("touchcancel", onEnd);
-  }
-
-  private setupLookZone(): void {
-    const zone = document.getElementById("look-zone");
-    if (!zone) return;
-
-    const onStart = (e: TouchEvent): void => {
-      if (this.lookTouchId !== null) return;
-      const touch = e.changedTouches[0];
-      this.lookTouchId = touch.identifier;
-      this.lookLastX = touch.clientX;
-      this.lookLastY = touch.clientY;
-    };
-
-    const onMove = (e: TouchEvent): void => {
-      if (this.lookTouchId === null) return;
-      const touch = Array.from(e.changedTouches).find((t) => t.identifier === this.lookTouchId);
-      if (!touch) return;
-      const dx = touch.clientX - this.lookLastX;
-      const dy = touch.clientY - this.lookLastY;
-      this.lookLastX = touch.clientX;
-      this.lookLastY = touch.clientY;
-      this.player.applyLookDelta(dx, dy);
-      e.preventDefault();
-    };
-
-    const onEnd = (e: TouchEvent): void => {
-      const touch = Array.from(e.changedTouches).find((t) => t.identifier === this.lookTouchId);
-      if (!touch) return;
-      this.lookTouchId = null;
+      onChange(0, 0);
     };
 
     zone.addEventListener("touchstart", onStart, { passive: false });

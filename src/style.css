@@ -189,17 +189,10 @@ body.touch-device #ammo-hint { display: none; }
   z-index: 20;
 }
 body.touch-device #mobile-controls.visible { opacity: 1; }
-body.touch-device #mobile-controls.visible #look-zone,
 body.touch-device #mobile-controls.visible #joystick-zone,
+body.touch-device #mobile-controls.visible #look-joystick-zone,
 body.touch-device #mobile-controls.visible .touch-btn {
   pointer-events: auto;
-}
-
-#look-zone {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  touch-action: none;
 }
 
 #joystick-zone {
@@ -211,7 +204,7 @@ body.touch-device #mobile-controls.visible .touch-btn {
   z-index: 2;
   touch-action: none;
 }
-#joystick-base {
+.joystick-base {
   position: relative;
   width: 100%;
   height: 100%;
@@ -220,7 +213,7 @@ body.touch-device #mobile-controls.visible .touch-btn {
   border: 2px solid rgba(78, 226, 255, 0.35);
   box-shadow: 0 0 20px rgba(78, 226, 255, 0.15), inset 0 0 20px rgba(78, 226, 255, 0.1);
 }
-#joystick-thumb {
+.joystick-thumb {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -232,8 +225,25 @@ body.touch-device #mobile-controls.visible .touch-btn {
   border: 1px solid rgba(78, 226, 255, 0.7);
   box-shadow: 0 0 16px rgba(78, 226, 255, 0.4);
 }
-#joystick-thumb.active {
+.joystick-thumb.active {
   background: rgba(78, 226, 255, 0.55);
+}
+
+#right-controls {
+  position: absolute;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(28px, env(safe-area-inset-bottom));
+  width: 220px;
+  height: 232px;
+}
+#look-joystick-zone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 130px;
+  height: 130px;
+  z-index: 2;
+  touch-action: none;
 }
 
 .touch-btn {
@@ -254,14 +264,14 @@ body.touch-device #mobile-controls.visible .touch-btn {
   -webkit-tap-highlight-color: transparent;
 }
 #jump-btn {
-  right: max(30px, env(safe-area-inset-right));
-  bottom: 158px;
+  right: 121px;
+  bottom: 148px;
   width: 60px;
   height: 60px;
 }
 #fire-btn {
-  right: max(28px, env(safe-area-inset-right));
-  bottom: max(34px, env(safe-area-inset-bottom));
+  right: 23px;
+  bottom: 148px;
   width: 84px;
   height: 84px;
   font-size: 14px;
@@ -426,6 +436,16 @@ body.touch-device button .touch-controls { display: inline; }
   .panel h1 { font-size: 40px; letter-spacing: 8px; }
   #hud-left .bar-track { width: 180px; }
   #hud { padding: 16px 18px; }
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  #joystick-zone { width: 100px; height: 100px; }
+  #right-controls { width: 170px; height: 180px; }
+  #look-joystick-zone { width: 100px; height: 100px; }
+  #fire-btn { right: 16px; bottom: 112px; width: 68px; height: 68px; font-size: 12px; }
+  #jump-btn { right: 96px; bottom: 112px; width: 50px; height: 50px; font-size: 10px; }
+  #hud { padding: 12px 16px; }
+  #hud-left .bar-track { width: 160px; }
 }
 
 button {

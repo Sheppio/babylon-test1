@@ -11,7 +11,7 @@ import {
   PLAYER_MAX_HEALTH,
   PLAYER_RADIUS,
   PLAYER_SPRINT_MULT,
-  TOUCH_LOOK_SENSITIVITY,
+  TOUCH_LOOK_TURN_SPEED,
   TOUCH_PITCH_LIMIT,
 } from "./constants";
 
@@ -36,6 +36,8 @@ export class PlayerController {
   private sprinting = false;
   private virtualMoveX = 0;
   private virtualMoveZ = 0;
+  private virtualLookX = 0;
+  private virtualLookY = 0;
 
   constructor(scene: Scene, canvas: HTMLCanvasElement, spawnPos: Vector3, obstacles: Obstacle[], callbacks: PlayerCallbacks) {
     this.obstacles = obstacles;
@@ -87,15 +89,21 @@ export class PlayerController {
     this.keys[code] = pressed;
   }
 
-  applyLookDelta(dx: number, dy: number): void {
-    this.camera.rotation.y += dx * TOUCH_LOOK_SENSITIVITY;
-    this.camera.rotation.x += dy * TOUCH_LOOK_SENSITIVITY;
-    this.camera.rotation.x = Math.max(-TOUCH_PITCH_LIMIT, Math.min(TOUCH_PITCH_LIMIT, this.camera.rotation.x));
+  setVirtualLook(x: number, y: number): void {
+    this.virtualLookX = x;
+    this.virtualLookY = y;
   }
 
   update(dt: number): void {
     if (!this.alive) return;
     const cam = this.camera;
+
+    const lookMagnitude = Math.hypot(this.virtualLookX, this.virtualLookY);
+    if (lookMagnitude > JOYSTICK_DEADZONE) {
+      cam.rotation.y += this.virtualLookX * TOUCH_LOOK_TURN_SPEED * dt;
+      cam.rotation.x += this.virtualLookY * TOUCH_LOOK_TURN_SPEED * dt;
+      cam.rotation.x = Math.max(-TOUCH_PITCH_LIMIT, Math.min(TOUCH_PITCH_LIMIT, cam.rotation.x));
+    }
 
     const forward = cam.getDirection(Vector3.Forward());
     forward.y = 0;
@@ -184,6 +192,8 @@ export class PlayerController {
     this.grounded = true;
     this.virtualMoveX = 0;
     this.virtualMoveZ = 0;
+    this.virtualLookX = 0;
+    this.virtualLookY = 0;
     this.camera.position.copyFrom(this.spawnPos.add(new Vector3(0, PLAYER_EYE_HEIGHT, 0)));
     this.camera.rotation.set(0, 0, 0);
   }
