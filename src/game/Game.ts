@@ -15,6 +15,7 @@ import { HUD } from "./HUD";
 import { MobileControls } from "./MobileControls";
 import { PickupManager } from "./Pickups";
 import { PlayerController } from "./PlayerController";
+import { settings } from "./Settings";
 import { isTouchDevice } from "./touch";
 import { WaveManager } from "./WaveManager";
 import { WeaponView } from "./WeaponView";
@@ -194,6 +195,14 @@ export class Game {
     this.audio.enemyDeath();
   }
 
+  private hasTargetInSight(): boolean {
+    const cam = this.player.camera;
+    const direction = cam.getDirection(Vector3.Forward());
+    const ray = new Ray(cam.globalPosition, direction, WEAPON_RANGE);
+    const pick = this.scene.pickWithRay(ray, (mesh) => mesh.metadata?.type === "enemy");
+    return !!pick?.hit;
+  }
+
   private fire(): void {
     this.audio.shoot();
     this.weapon.triggerRecoil();
@@ -225,7 +234,8 @@ export class Game {
     this.pickups.update(dt, this.player.camera.position);
 
     this.fireCooldown -= dt;
-    if (this.isFiring && this.fireCooldown <= 0) {
+    const wantsToFire = settings.autoFire ? this.hasTargetInSight() : this.isFiring;
+    if (wantsToFire && this.fireCooldown <= 0) {
       this.fireCooldown = FIRE_COOLDOWN;
       this.fire();
     }

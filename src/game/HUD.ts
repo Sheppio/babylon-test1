@@ -15,6 +15,7 @@ export class HUD {
   private settingsBtn = el<HTMLButtonElement>("settings-btn");
   private settingsBackBtn = el<HTMLButtonElement>("settings-back-btn");
   private invertYToggle = el<HTMLInputElement>("invert-y-toggle");
+  private autoFireToggle = el<HTMLInputElement>("auto-fire-toggle");
   private hud = el<HTMLDivElement>("hud");
   private mobileControls = el<HTMLDivElement>("mobile-controls");
   private crosshair = el<HTMLDivElement>("crosshair");
@@ -42,6 +43,14 @@ export class HUD {
 
     this.invertYToggle.checked = settings.invertY;
     this.invertYToggle.addEventListener("change", () => settings.setInvertY(this.invertYToggle.checked));
+
+    this.autoFireToggle.checked = settings.autoFire;
+    document.body.classList.toggle("auto-fire", settings.autoFire);
+    this.autoFireToggle.addEventListener("change", () => {
+      settings.setAutoFire(this.autoFireToggle.checked);
+      document.body.classList.toggle("auto-fire", this.autoFireToggle.checked);
+    });
+
     this.settingsBtn.addEventListener("click", () => {
       this.startScreen.classList.add("hidden");
       this.settingsScreen.classList.remove("hidden");
@@ -72,6 +81,8 @@ export class HUD {
     this.crosshair.classList.add("visible");
     this.ammoHint.classList.add("visible");
     this.mobileControls.classList.add("visible");
+    const fireHint = settings.autoFire ? "AUTO-FIRE ON TARGET" : "LMB FIRE";
+    this.ammoHint.innerHTML = `${fireHint} &nbsp;·&nbsp; WASD MOVE &nbsp;·&nbsp; SPACE JUMP &nbsp;·&nbsp; SHIFT SPRINT`;
   }
 
   showPause(): void {

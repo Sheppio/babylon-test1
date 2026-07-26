@@ -2,6 +2,7 @@ const STORAGE_KEY = "arena-settings-v1";
 
 interface SettingsData {
   invertY: boolean;
+  autoFire: boolean;
 }
 
 function load(): SettingsData {
@@ -9,12 +10,12 @@ function load(): SettingsData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<SettingsData>;
-      return { invertY: parsed.invertY ?? false };
+      return { invertY: parsed.invertY ?? false, autoFire: parsed.autoFire ?? true };
     }
   } catch {
     // localStorage unavailable or corrupt; fall back to defaults
   }
-  return { invertY: false };
+  return { invertY: false, autoFire: true };
 }
 
 class SettingsStore {
@@ -26,6 +27,15 @@ class SettingsStore {
 
   setInvertY(value: boolean): void {
     this.data.invertY = value;
+    this.persist();
+  }
+
+  get autoFire(): boolean {
+    return this.data.autoFire;
+  }
+
+  setAutoFire(value: boolean): void {
+    this.data.autoFire = value;
     this.persist();
   }
 

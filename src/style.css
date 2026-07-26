@@ -286,6 +286,9 @@ body.touch-device #mobile-controls.visible .touch-btn {
 #fire-btn.active {
   background: rgba(255, 56, 96, 0.95);
 }
+body.auto-fire #fire-btn {
+  display: none;
+}
 
 .rotate-hint {
   display: none;
