@@ -1,3 +1,4 @@
+import { settings } from "./Settings";
 import { isTouchDevice } from "./touch";
 
 function el<T extends HTMLElement>(id: string): T {
@@ -10,6 +11,10 @@ export class HUD {
   private startScreen = el<HTMLDivElement>("start-screen");
   private pauseScreen = el<HTMLDivElement>("pause-screen");
   private gameoverScreen = el<HTMLDivElement>("gameover-screen");
+  private settingsScreen = el<HTMLDivElement>("settings-screen");
+  private settingsBtn = el<HTMLButtonElement>("settings-btn");
+  private settingsBackBtn = el<HTMLButtonElement>("settings-back-btn");
+  private invertYToggle = el<HTMLInputElement>("invert-y-toggle");
   private hud = el<HTMLDivElement>("hud");
   private mobileControls = el<HTMLDivElement>("mobile-controls");
   private crosshair = el<HTMLDivElement>("crosshair");
@@ -34,6 +39,17 @@ export class HUD {
 
   constructor() {
     if (isTouchDevice) document.body.classList.add("touch-device");
+
+    this.invertYToggle.checked = settings.invertY;
+    this.invertYToggle.addEventListener("change", () => settings.setInvertY(this.invertYToggle.checked));
+    this.settingsBtn.addEventListener("click", () => {
+      this.startScreen.classList.add("hidden");
+      this.settingsScreen.classList.remove("hidden");
+    });
+    this.settingsBackBtn.addEventListener("click", () => {
+      this.settingsScreen.classList.add("hidden");
+      this.startScreen.classList.remove("hidden");
+    });
   }
 
   onStart(cb: () => void): void {

@@ -81,7 +81,22 @@
             <span class="desktop-controls">CLICK TO DEPLOY</span>
             <span class="touch-controls">TAP TO DEPLOY</span>
           </button>
+          <button id="settings-btn" class="secondary-btn">SETTINGS</button>
           <div id="loading-text">Loading engine...</div>
+        </div>
+      </div>
+
+      <div id="settings-screen" class="overlay hidden">
+        <div class="panel">
+          <h2>SETTINGS</h2>
+          <div class="settings-row">
+            <span class="settings-label">Invert Look Y-Axis</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="invert-y-toggle" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <button id="settings-back-btn">BACK</button>
         </div>
       </div>
 

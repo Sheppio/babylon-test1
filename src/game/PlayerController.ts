@@ -1,18 +1,20 @@
 import { type Scene, UniversalCamera, Vector3 } from "@babylonjs/core";
 import { resolveCollisions } from "./Collision";
+import { settings } from "./Settings";
 import {
   GRAVITY,
   JOYSTICK_DEADZONE,
   JOYSTICK_SPRINT_THRESHOLD,
   JUMP_SPEED,
+  MOUSE_ANGULAR_SENSIBILITY,
   type Obstacle,
+  PITCH_LIMIT,
   PLAYER_BASE_SPEED,
   PLAYER_EYE_HEIGHT,
   PLAYER_MAX_HEALTH,
   PLAYER_RADIUS,
   PLAYER_SPRINT_MULT,
   TOUCH_LOOK_TURN_SPEED,
-  TOUCH_PITCH_LIMIT,
 } from "./constants";
 
 export interface PlayerCallbacks {
@@ -38,17 +40,17 @@ export class PlayerController {
   private virtualMoveZ = 0;
   private virtualLookX = 0;
   private virtualLookY = 0;
+  private canvasEl: HTMLCanvasElement;
 
   constructor(scene: Scene, canvas: HTMLCanvasElement, spawnPos: Vector3, obstacles: Obstacle[], callbacks: PlayerCallbacks) {
     this.obstacles = obstacles;
     this.callbacks = callbacks;
     this.spawnPos = spawnPos.clone();
+    this.canvasEl = canvas;
 
     this.camera = new UniversalCamera("playerCam", spawnPos.add(new Vector3(0, PLAYER_EYE_HEIGHT, 0)), scene);
     this.camera.minZ = 0.05;
     this.camera.fov = 0.95;
-    this.camera.inertia = 0.35;
-    this.camera.angularSensibility = 2600;
     this.camera.checkCollisions = false;
     this.camera.applyGravity = false;
     this.camera.attachControl(canvas, true);
@@ -57,9 +59,12 @@ export class PlayerController {
     if (kb) this.camera.inputs.remove(kb);
     const touch = this.camera.inputs.attached.touch;
     if (touch) this.camera.inputs.remove(touch);
+    const mouse = this.camera.inputs.attached.mouse;
+    if (mouse) this.camera.inputs.remove(mouse);
 
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
+    window.addEventListener("mousemove", this.onMouseMove);
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
@@ -69,6 +74,15 @@ export class PlayerController {
 
   private onKeyUp = (e: KeyboardEvent): void => {
     this.keys[e.code] = false;
+  };
+
+  private onMouseMove = (e: MouseEvent): void => {
+    if (document.pointerLockElement !== this.canvasEl) return;
+    const cam = this.camera;
+    cam.rotation.y += e.movementX / MOUSE_ANGULAR_SENSIBILITY;
+    const pitchDelta = e.movementY / MOUSE_ANGULAR_SENSIBILITY;
+    cam.rotation.x += settings.invertY ? -pitchDelta : pitchDelta;
+    cam.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, cam.rotation.x));
   };
 
   isMoving(): boolean {
@@ -101,8 +115,9 @@ export class PlayerController {
     const lookMagnitude = Math.hypot(this.virtualLookX, this.virtualLookY);
     if (lookMagnitude > JOYSTICK_DEADZONE) {
       cam.rotation.y += this.virtualLookX * TOUCH_LOOK_TURN_SPEED * dt;
-      cam.rotation.x += this.virtualLookY * TOUCH_LOOK_TURN_SPEED * dt;
-      cam.rotation.x = Math.max(-TOUCH_PITCH_LIMIT, Math.min(TOUCH_PITCH_LIMIT, cam.rotation.x));
+      const pitchDelta = this.virtualLookY * TOUCH_LOOK_TURN_SPEED * dt;
+      cam.rotation.x += settings.invertY ? -pitchDelta : pitchDelta;
+      cam.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, cam.rotation.x));
     }
 
     const forward = cam.getDirection(Vector3.Forward());
@@ -201,5 +216,6 @@ export class PlayerController {
   dispose(): void {
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);
+    window.removeEventListener("mousemove", this.onMouseMove);
   }
 }
