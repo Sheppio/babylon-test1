@@ -18,10 +18,9 @@ export class MobileControls {
     this.onFireEnd = onFireEnd;
 
     // bindJoystick reports raw screen-space deflection (y positive = pushed down).
-    // Movement treats "up" as forward, so it inverts y; look treats "up" as look-up
-    // (pitch decreases), which is already the natural sign, so it passes y through.
+    // Movement treats "up" as forward, so it inverts y. Look only drives yaw (left/right).
     this.bindJoystick("joystick-zone", "joystick-base", "joystick-thumb", (x, y) => this.player.setVirtualMove(x, -y));
-    this.bindJoystick("look-joystick-zone", "look-joystick-base", "look-joystick-thumb", (x, y) => this.player.setVirtualLook(x, y));
+    this.bindJoystick("look-joystick-zone", "look-joystick-base", "look-joystick-thumb", (x) => this.player.setVirtualLook(x));
 
     this.setupButton(
       "jump-btn",

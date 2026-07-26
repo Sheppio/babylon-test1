@@ -14,7 +14,6 @@ export class HUD {
   private settingsScreen = el<HTMLDivElement>("settings-screen");
   private settingsBtn = el<HTMLButtonElement>("settings-btn");
   private settingsBackBtn = el<HTMLButtonElement>("settings-back-btn");
-  private invertYToggle = el<HTMLInputElement>("invert-y-toggle");
   private autoFireToggle = el<HTMLInputElement>("auto-fire-toggle");
   private hud = el<HTMLDivElement>("hud");
   private mobileControls = el<HTMLDivElement>("mobile-controls");
@@ -40,9 +39,6 @@ export class HUD {
 
   constructor() {
     if (isTouchDevice) document.body.classList.add("touch-device");
-
-    this.invertYToggle.checked = settings.invertY;
-    this.invertYToggle.addEventListener("change", () => settings.setInvertY(this.invertYToggle.checked));
 
     this.autoFireToggle.checked = settings.autoFire;
     document.body.classList.toggle("auto-fire", settings.autoFire);

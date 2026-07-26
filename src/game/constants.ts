@@ -15,7 +15,6 @@ export const WEAPON_RANGE = 120;
 
 export const MOUSE_ANGULAR_SENSIBILITY = 2600;
 export const TOUCH_LOOK_TURN_SPEED = 3.0;
-export const PITCH_LIMIT = 1.3;
 export const JOYSTICK_SPRINT_THRESHOLD = 0.85;
 export const JOYSTICK_DEADZONE = 0.08;
 

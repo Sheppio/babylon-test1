@@ -1,6 +1,5 @@
 import { type Scene, UniversalCamera, Vector3 } from "@babylonjs/core";
 import { resolveCollisions } from "./Collision";
-import { settings } from "./Settings";
 import {
   GRAVITY,
   JOYSTICK_DEADZONE,
@@ -8,7 +7,6 @@ import {
   JUMP_SPEED,
   MOUSE_ANGULAR_SENSIBILITY,
   type Obstacle,
-  PITCH_LIMIT,
   PLAYER_BASE_SPEED,
   PLAYER_EYE_HEIGHT,
   PLAYER_MAX_HEALTH,
@@ -39,7 +37,6 @@ export class PlayerController {
   private virtualMoveX = 0;
   private virtualMoveZ = 0;
   private virtualLookX = 0;
-  private virtualLookY = 0;
   private canvasEl: HTMLCanvasElement;
 
   constructor(scene: Scene, canvas: HTMLCanvasElement, spawnPos: Vector3, obstacles: Obstacle[], callbacks: PlayerCallbacks) {
@@ -78,11 +75,7 @@ export class PlayerController {
 
   private onMouseMove = (e: MouseEvent): void => {
     if (document.pointerLockElement !== this.canvasEl) return;
-    const cam = this.camera;
-    cam.rotation.y += e.movementX / MOUSE_ANGULAR_SENSIBILITY;
-    const pitchDelta = e.movementY / MOUSE_ANGULAR_SENSIBILITY;
-    cam.rotation.x += settings.invertY ? -pitchDelta : pitchDelta;
-    cam.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, cam.rotation.x));
+    this.camera.rotation.y += e.movementX / MOUSE_ANGULAR_SENSIBILITY;
   };
 
   isMoving(): boolean {
@@ -103,21 +96,16 @@ export class PlayerController {
     this.keys[code] = pressed;
   }
 
-  setVirtualLook(x: number, y: number): void {
+  setVirtualLook(x: number): void {
     this.virtualLookX = x;
-    this.virtualLookY = y;
   }
 
   update(dt: number): void {
     if (!this.alive) return;
     const cam = this.camera;
 
-    const lookMagnitude = Math.hypot(this.virtualLookX, this.virtualLookY);
-    if (lookMagnitude > JOYSTICK_DEADZONE) {
+    if (Math.abs(this.virtualLookX) > JOYSTICK_DEADZONE) {
       cam.rotation.y += this.virtualLookX * TOUCH_LOOK_TURN_SPEED * dt;
-      const pitchDelta = this.virtualLookY * TOUCH_LOOK_TURN_SPEED * dt;
-      cam.rotation.x += settings.invertY ? -pitchDelta : pitchDelta;
-      cam.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, cam.rotation.x));
     }
 
     const forward = cam.getDirection(Vector3.Forward());
@@ -208,7 +196,6 @@ export class PlayerController {
     this.virtualMoveX = 0;
     this.virtualMoveZ = 0;
     this.virtualLookX = 0;
-    this.virtualLookY = 0;
     this.camera.position.copyFrom(this.spawnPos.add(new Vector3(0, PLAYER_EYE_HEIGHT, 0)));
     this.camera.rotation.set(0, 0, 0);
   }
