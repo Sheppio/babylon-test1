@@ -38,8 +38,14 @@ if (new URLSearchParams(location.search).has("debug")) {
     logStatic("No WebGL context obtained via debug probe");
   }
 
+  const params = new URLSearchParams(location.search);
+  const debugFlagNames = ["noground", "flatground", "nofog", "noglow", "nopipeline", "nofrustumcull", "wireframe"];
+  const activeFlags = debugFlagNames.filter((f) => params.has(f));
+  logStatic(`active flags: ${activeFlags.length ? activeFlags.join(", ") : "(none — add e.g. ?debug=1&noground=1 to test)"}`);
+
   try {
     const game = new Game(canvas);
+    game.applyDebugFlags(params);
     setInterval(() => {
       const info = game.debugInfo();
       const statusStr = Object.entries(info.meshStatus)

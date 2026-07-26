@@ -22,6 +22,7 @@ export interface ArenaData {
   shadowGenerator: ShadowGenerator;
   shadowCasters: Mesh[];
   boundaryWall: Mesh;
+  ground: Mesh;
 }
 
 const PILLARS: { x: number; z: number; radius: number; height: number }[] = [
@@ -185,7 +186,7 @@ export function buildArena(scene: Scene): ArenaData {
   scene.collisionsEnabled = false;
 
   buildSky(scene);
-  buildGround(scene);
+  const ground = buildGround(scene);
   const boundaryWall = buildBoundary(scene);
   buildStadium(scene);
   const shadowGenerator = buildLighting(scene);
@@ -198,5 +199,5 @@ export function buildArena(scene: Scene): ArenaData {
     spawnRing.push(new Vector3(Math.cos(angle) * (ARENA_RADIUS - 1.5), 0, Math.sin(angle) * (ARENA_RADIUS - 1.5)));
   }
 
-  return { obstacles, spawnRing, shadowGenerator, shadowCasters: casters, boundaryWall };
+  return { obstacles, spawnRing, shadowGenerator, shadowCasters: casters, boundaryWall, ground };
 }

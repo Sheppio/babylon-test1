@@ -1,11 +1,14 @@
 import {
+  Color3,
   Color4,
   DefaultRenderingPipeline,
   Engine,
   Frustum,
   GlowLayer,
+  Mesh,
   Ray,
   Scene,
+  StandardMaterial,
   Vector3,
 } from "@babylonjs/core";
 import { buildArena } from "./Arena";
@@ -35,6 +38,9 @@ export class Game {
   private weapon: WeaponView;
   private waveManager: WaveManager;
   private pickups: PickupManager;
+  private ground: Mesh;
+  private glow: GlowLayer;
+  private pipeline: DefaultRenderingPipeline;
 
   private state: GameState = "start";
   private isFiring = false;
@@ -52,6 +58,7 @@ export class Game {
     this.scene = new Scene(this.engine);
 
     const arena = buildArena(this.scene);
+    this.ground = arena.ground;
 
     this.player = new PlayerController(this.scene, canvas, new Vector3(0, 0, 0), arena.obstacles, {
       onDamage: (_amount, health) => {
@@ -103,22 +110,22 @@ export class Game {
       );
     }
 
-    const glow = new GlowLayer("glow", this.scene);
-    glow.intensity = 0.5;
-    glow.addExcludedMesh(arena.boundaryWall);
+    this.glow = new GlowLayer("glow", this.scene);
+    this.glow.intensity = 0.5;
+    this.glow.addExcludedMesh(arena.boundaryWall);
 
-    const pipeline = new DefaultRenderingPipeline("pipeline", true, this.scene, [this.player.camera]);
-    pipeline.bloomEnabled = true;
-    pipeline.bloomThreshold = 0.55;
-    pipeline.bloomWeight = 0.28;
-    pipeline.bloomKernel = 48;
-    pipeline.bloomScale = 0.5;
-    pipeline.fxaaEnabled = true;
-    pipeline.imageProcessing.vignetteEnabled = true;
-    pipeline.imageProcessing.vignetteWeight = 1.2;
-    pipeline.imageProcessing.vignetteColor = new Color4(0, 0, 0, 1);
-    pipeline.imageProcessing.contrast = 1.08;
-    pipeline.imageProcessing.exposure = 1.0;
+    this.pipeline = new DefaultRenderingPipeline("pipeline", true, this.scene, [this.player.camera]);
+    this.pipeline.bloomEnabled = true;
+    this.pipeline.bloomThreshold = 0.55;
+    this.pipeline.bloomWeight = 0.28;
+    this.pipeline.bloomKernel = 48;
+    this.pipeline.bloomScale = 0.5;
+    this.pipeline.fxaaEnabled = true;
+    this.pipeline.imageProcessing.vignetteEnabled = true;
+    this.pipeline.imageProcessing.vignetteWeight = 1.2;
+    this.pipeline.imageProcessing.vignetteColor = new Color4(0, 0, 0, 1);
+    this.pipeline.imageProcessing.contrast = 1.08;
+    this.pipeline.imageProcessing.exposure = 1.0;
 
     this.hud.onStart(() => this.startGame());
     this.hud.onRestart(() => this.startGame());
@@ -197,6 +204,25 @@ export class Game {
     this.hud.setScore(this.score);
     this.hud.showCombo(this.comboCount);
     this.audio.enemyDeath();
+  }
+
+  applyDebugFlags(flags: URLSearchParams): void {
+    if (flags.has("noground")) this.ground.setEnabled(false);
+    if (flags.has("flatground")) {
+      const mat = new StandardMaterial("debugFlatGround", this.scene);
+      mat.diffuseColor = new Color3(0.5, 0.1, 0.6);
+      mat.specularColor = Color3.Black();
+      this.ground.material = mat;
+    }
+    if (flags.has("nofog")) this.scene.fogEnabled = false;
+    if (flags.has("noglow")) this.glow.isEnabled = false;
+    if (flags.has("nopipeline")) this.pipeline.dispose();
+    if (flags.has("nofrustumcull")) {
+      for (const m of this.scene.meshes) m.alwaysSelectAsActiveMesh = true;
+    }
+    if (flags.has("wireframe")) {
+      for (const m of this.scene.materials) m.wireframe = true;
+    }
   }
 
   debugInfo(): {
