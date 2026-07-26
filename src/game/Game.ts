@@ -198,6 +198,22 @@ export class Game {
     this.audio.enemyDeath();
   }
 
+  debugInfo(): { meshCount: number; lightCount: number; materialCount: number; fps: number; meshStatus: Record<string, string> } {
+    const names = ["pulseRing", "emblem", "risersMerged", "retainingWall", "ground", "trussStructureMerged"];
+    const meshStatus: Record<string, string> = {};
+    for (const n of names) {
+      const m = this.scene.getMeshByName(n);
+      meshStatus[n] = m ? (m.isEnabled() ? "ok" : "disabled") : "MISSING";
+    }
+    return {
+      meshCount: this.scene.meshes.length,
+      lightCount: this.scene.lights.length,
+      materialCount: this.scene.materials.length,
+      fps: this.engine.getFps(),
+      meshStatus,
+    };
+  }
+
   private hasTargetInSight(): boolean {
     const cam = this.player.camera;
     const direction = cam.getDirection(Vector3.Forward());
