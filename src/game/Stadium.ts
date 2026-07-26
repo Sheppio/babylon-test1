@@ -6,7 +6,6 @@ import {
   MeshBuilder,
   Quaternion,
   Scene,
-  SpotLight,
   StandardMaterial,
   Texture,
   Vector3,
@@ -316,14 +315,6 @@ function buildLightTrusses(scene: Scene): void {
 
     const inward = new Vector3(-x, 0, -z).normalize();
     const dir = new Vector3(inward.x * Math.sin(tilt), -Math.cos(tilt), inward.z * Math.sin(tilt)).normalize();
-
-    // StandardMaterial caps lighting at 4 simultaneous lights per mesh by default, so having
-    // every truss cast a real spotlight stays cheap - each surface only ever shades against
-    // its nearest few anyway.
-    const spot = new SpotLight(`trussSpot${i}`, new Vector3(x, TRUSS_HEIGHT, z), dir, Math.PI / 3.5, 3.5, scene);
-    spot.diffuse = lightColors[colorIdx];
-    spot.intensity = 45;
-    spot.range = 50;
 
     const beamHeight = TRUSS_HEIGHT - 1.5;
     const beam = MeshBuilder.CreateCylinder(`trussBeam${i}`, { diameterTop: 0.3, diameterBottom: 13, height: beamHeight, tessellation: 10 }, scene);
