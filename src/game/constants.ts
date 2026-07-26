@@ -12,6 +12,11 @@ export const FIRE_COOLDOWN = 0.13;
 export const WEAPON_DAMAGE = 26;
 export const WEAPON_RANGE = 120;
 
+export const TOUCH_LOOK_SENSITIVITY = 0.0032;
+export const TOUCH_PITCH_LIMIT = 1.3;
+export const JOYSTICK_SPRINT_THRESHOLD = 0.85;
+export const JOYSTICK_DEADZONE = 0.08;
+
 export const ENEMY_BASE_HEALTH = 40;
 export const ENEMY_BASE_SPEED = 3.4;
 export const ENEMY_RADIUS = 0.65;

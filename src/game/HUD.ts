@@ -1,3 +1,5 @@
+import { isTouchDevice } from "./touch";
+
 function el<T extends HTMLElement>(id: string): T {
   const found = document.getElementById(id);
   if (!found) throw new Error(`Missing element #${id}`);
@@ -9,6 +11,7 @@ export class HUD {
   private pauseScreen = el<HTMLDivElement>("pause-screen");
   private gameoverScreen = el<HTMLDivElement>("gameover-screen");
   private hud = el<HTMLDivElement>("hud");
+  private mobileControls = el<HTMLDivElement>("mobile-controls");
   private crosshair = el<HTMLDivElement>("crosshair");
   private ammoHint = el<HTMLDivElement>("ammo-hint");
   private healthFill = el<HTMLDivElement>("health-fill");
@@ -29,6 +32,10 @@ export class HUD {
 
   private comboHideTimer: number | null = null;
 
+  constructor() {
+    if (isTouchDevice) document.body.classList.add("touch-device");
+  }
+
   onStart(cb: () => void): void {
     this.startBtn.addEventListener("click", cb);
   }
@@ -48,6 +55,7 @@ export class HUD {
     this.hud.classList.add("visible");
     this.crosshair.classList.add("visible");
     this.ammoHint.classList.add("visible");
+    this.mobileControls.classList.add("visible");
   }
 
   showPause(): void {
@@ -66,6 +74,7 @@ export class HUD {
     this.hud.classList.remove("visible");
     this.crosshair.classList.remove("visible");
     this.ammoHint.classList.remove("visible");
+    this.mobileControls.classList.remove("visible");
   }
 
   setHealth(current: number, max: number): void {

@@ -12,8 +12,10 @@ import { SfxEngine } from "./Audio";
 import { hitSpark, muzzleFlash } from "./Effects";
 import { Enemy } from "./Enemy";
 import { HUD } from "./HUD";
+import { MobileControls } from "./MobileControls";
 import { PickupManager } from "./Pickups";
 import { PlayerController } from "./PlayerController";
+import { isTouchDevice } from "./touch";
 import { WaveManager } from "./WaveManager";
 import { WeaponView } from "./WeaponView";
 import { FIRE_COOLDOWN, WEAPON_DAMAGE, WEAPON_RANGE } from "./constants";
@@ -86,6 +88,18 @@ export class Game {
       this.audio.pickup();
     });
 
+    if (isTouchDevice) {
+      new MobileControls(
+        this.player,
+        () => {
+          if (this.state === "playing") this.isFiring = true;
+        },
+        () => {
+          this.isFiring = false;
+        },
+      );
+    }
+
     const glow = new GlowLayer("glow", this.scene);
     glow.intensity = 0.5;
     glow.addExcludedMesh(arena.boundaryWall);
@@ -155,7 +169,7 @@ export class Game {
     this.hud.setScore(0);
 
     this.state = "playing";
-    this.canvas.requestPointerLock();
+    if (!isTouchDevice) this.canvas.requestPointerLock();
   }
 
   private gameOver(): void {

@@ -2,6 +2,8 @@ import { type Scene, UniversalCamera, Vector3 } from "@babylonjs/core";
 import { resolveCollisions } from "./Collision";
 import {
   GRAVITY,
+  JOYSTICK_DEADZONE,
+  JOYSTICK_SPRINT_THRESHOLD,
   JUMP_SPEED,
   type Obstacle,
   PLAYER_BASE_SPEED,
@@ -9,6 +11,8 @@ import {
   PLAYER_MAX_HEALTH,
   PLAYER_RADIUS,
   PLAYER_SPRINT_MULT,
+  TOUCH_LOOK_SENSITIVITY,
+  TOUCH_PITCH_LIMIT,
 } from "./constants";
 
 export interface PlayerCallbacks {
@@ -30,6 +34,8 @@ export class PlayerController {
   private callbacks: PlayerCallbacks;
   private spawnPos: Vector3;
   private sprinting = false;
+  private virtualMoveX = 0;
+  private virtualMoveZ = 0;
 
   constructor(scene: Scene, canvas: HTMLCanvasElement, spawnPos: Vector3, obstacles: Obstacle[], callbacks: PlayerCallbacks) {
     this.obstacles = obstacles;
@@ -47,6 +53,8 @@ export class PlayerController {
 
     const kb = this.camera.inputs.attached.keyboard;
     if (kb) this.camera.inputs.remove(kb);
+    const touch = this.camera.inputs.attached.touch;
+    if (touch) this.camera.inputs.remove(touch);
 
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
@@ -62,11 +70,27 @@ export class PlayerController {
   };
 
   isMoving(): boolean {
-    return !!(this.keys["KeyW"] || this.keys["KeyA"] || this.keys["KeyS"] || this.keys["KeyD"]);
+    const keyMoving = !!(this.keys["KeyW"] || this.keys["KeyA"] || this.keys["KeyS"] || this.keys["KeyD"]);
+    return keyMoving || Math.hypot(this.virtualMoveX, this.virtualMoveZ) > JOYSTICK_DEADZONE;
   }
 
   isSprinting(): boolean {
     return this.sprinting;
+  }
+
+  setVirtualMove(strafe: number, forwardAmount: number): void {
+    this.virtualMoveX = strafe;
+    this.virtualMoveZ = forwardAmount;
+  }
+
+  setVirtualKey(code: string, pressed: boolean): void {
+    this.keys[code] = pressed;
+  }
+
+  applyLookDelta(dx: number, dy: number): void {
+    this.camera.rotation.y += dx * TOUCH_LOOK_SENSITIVITY;
+    this.camera.rotation.x += dy * TOUCH_LOOK_SENSITIVITY;
+    this.camera.rotation.x = Math.max(-TOUCH_PITCH_LIMIT, Math.min(TOUCH_PITCH_LIMIT, this.camera.rotation.x));
   }
 
   update(dt: number): void {
@@ -99,12 +123,21 @@ export class PlayerController {
       moveZ -= right.z;
     }
 
-    const len = Math.hypot(moveX, moveZ);
-    this.sprinting = !!(this.keys["ShiftLeft"] || this.keys["ShiftRight"]) && len > 0;
+    const kbLen = Math.hypot(moveX, moveZ);
+    const joyMagnitude = Math.hypot(this.virtualMoveX, this.virtualMoveZ);
+    const keyboardSprint = !!(this.keys["ShiftLeft"] || this.keys["ShiftRight"]) && kbLen > 0;
+    this.sprinting = keyboardSprint || joyMagnitude > JOYSTICK_SPRINT_THRESHOLD;
     const speed = PLAYER_BASE_SPEED * (this.sprinting ? PLAYER_SPRINT_MULT : 1);
-    if (len > 0) {
-      moveX = (moveX / len) * speed * dt;
-      moveZ = (moveZ / len) * speed * dt;
+
+    if (kbLen > 0) {
+      moveX = (moveX / kbLen) * speed * dt;
+      moveZ = (moveZ / kbLen) * speed * dt;
+    } else if (joyMagnitude > JOYSTICK_DEADZONE) {
+      moveX = (forward.x * this.virtualMoveZ + right.x * this.virtualMoveX) * speed * dt;
+      moveZ = (forward.z * this.virtualMoveZ + right.z * this.virtualMoveX) * speed * dt;
+    } else {
+      moveX = 0;
+      moveZ = 0;
     }
 
     const proposed = { x: cam.position.x + moveX, z: cam.position.z + moveZ };
@@ -149,6 +182,8 @@ export class PlayerController {
     this.alive = true;
     this.velocityY = 0;
     this.grounded = true;
+    this.virtualMoveX = 0;
+    this.virtualMoveZ = 0;
     this.camera.position.copyFrom(this.spawnPos.add(new Vector3(0, PLAYER_EYE_HEIGHT, 0)));
     this.camera.rotation.set(0, 0, 0);
   }

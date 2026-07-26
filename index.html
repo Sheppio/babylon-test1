@@ -34,6 +34,17 @@
 
       <div id="ammo-hint">LMB FIRE &nbsp;·&nbsp; WASD MOVE &nbsp;·&nbsp; SPACE JUMP &nbsp;·&nbsp; SHIFT SPRINT</div>
 
+      <div id="mobile-controls">
+        <div id="look-zone"></div>
+        <div id="joystick-zone">
+          <div id="joystick-base">
+            <div id="joystick-thumb"></div>
+          </div>
+        </div>
+        <div id="jump-btn" class="touch-btn">JUMP</div>
+        <div id="fire-btn" class="touch-btn touch-btn-fire">FIRE</div>
+      </div>
+
       <div id="banner"></div>
 
       <div id="vignette"></div>
@@ -44,7 +55,8 @@
           <h1>ARENA</h1>
           <h2>WAVE SHOOTER</h2>
           <p class="tagline">Survive the swarm. Built with Babylon.js.</p>
-          <div class="controls-grid">
+          <p class="rotate-hint">Rotate to landscape for the best experience.</p>
+          <div class="controls-grid desktop-controls">
             <div><b>WASD</b><span>Move</span></div>
             <div><b>Mouse</b><span>Look</span></div>
             <div><b>Click</b><span>Shoot</span></div>
@@ -52,7 +64,17 @@
             <div><b>Shift</b><span>Sprint</span></div>
             <div><b>Esc</b><span>Release mouse</span></div>
           </div>
-          <button id="start-btn">CLICK TO DEPLOY</button>
+          <div class="controls-grid touch-controls">
+            <div><b>Stick</b><span>Move</span></div>
+            <div><b>Drag</b><span>Look</span></div>
+            <div><b>FIRE</b><span>Shoot</span></div>
+            <div><b>JUMP</b><span>Jump</span></div>
+            <div><b>Push stick</b><span>Sprint</span></div>
+          </div>
+          <button id="start-btn">
+            <span class="desktop-controls">CLICK TO DEPLOY</span>
+            <span class="touch-controls">TAP TO DEPLOY</span>
+          </button>
           <div id="loading-text">Loading engine...</div>
         </div>
       </div>
