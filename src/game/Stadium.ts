@@ -84,7 +84,7 @@ function buildRetainingWall(scene: Scene): void {
 
   const mat = new StandardMaterial("retainingWallMat", scene);
   mat.diffuseTexture = tex;
-  mat.emissiveColor = new Color3(0.05, 0.09, 0.11);
+  mat.emissiveColor = new Color3(0.09, 0.16, 0.19);
   mat.specularColor = new Color3(0.1, 0.1, 0.12);
   wall.material = mat;
   wall.receiveShadows = true;
@@ -169,7 +169,7 @@ function buildPulseRing(scene: Scene): void {
 
 function buildBleachersAndCrowd(scene: Scene): void {
   const riserMat = new StandardMaterial("riserMat", scene);
-  riserMat.diffuseColor = new Color3(0.11, 0.13, 0.17);
+  riserMat.diffuseColor = new Color3(0.17, 0.2, 0.26);
   riserMat.specularColor = Color3.Black();
 
   const trimColors = [new Color3(0.15, 0.7, 0.85), new Color3(0.9, 0.25, 0.35)];
@@ -189,7 +189,7 @@ function buildBleachersAndCrowd(scene: Scene): void {
   spectatorMesh.name = "spectatorBase";
   const specMat = new StandardMaterial("spectatorMat", scene);
   specMat.diffuseColor = new Color3(1, 1, 1);
-  specMat.emissiveColor = new Color3(0.35, 0.35, 0.35);
+  specMat.emissiveColor = new Color3(0.45, 0.45, 0.45);
   specMat.specularColor = Color3.Black();
   spectatorMesh.material = specMat;
   spectatorMesh.isPickable = false;

@@ -69,11 +69,11 @@ function buildSky(scene: Scene): void {
 function buildGround(scene: Scene): Mesh {
   const ground = MeshBuilder.CreateGround("ground", { width: ARENA_RADIUS * 2 + 4, height: ARENA_RADIUS * 2 + 4, subdivisions: 2 }, scene);
   const mat = new GridMaterial("groundMat", scene);
-  mat.mainColor = new Color3(0.02, 0.04, 0.07);
-  mat.lineColor = new Color3(0.16, 0.55, 0.65);
+  mat.mainColor = new Color3(0.06, 0.1, 0.16);
+  mat.lineColor = new Color3(0.3, 0.85, 1);
   mat.gridRatio = 2;
   mat.majorUnitFrequency = 5;
-  mat.minorUnitVisibility = 0.35;
+  mat.minorUnitVisibility = 0.45;
   mat.opacity = 0.99;
   ground.material = mat;
   ground.receiveShadows = true;
@@ -90,8 +90,8 @@ function buildBoundary(scene: Scene): Mesh {
   wall.position.y = RETAINING_WALL_HEIGHT + WALL_HEIGHT / 2;
   const mat = new StandardMaterial("wallMat", scene);
   mat.diffuseColor = new Color3(0.02, 0.04, 0.05);
-  mat.emissiveColor = new Color3(0.03, 0.1, 0.12);
-  mat.alpha = 0.05;
+  mat.emissiveColor = new Color3(0.05, 0.16, 0.2);
+  mat.alpha = 0.06;
   mat.specularColor = Color3.Black();
   mat.backFaceCulling = false;
   wall.material = mat;
@@ -151,38 +151,38 @@ function buildPillars(scene: Scene, shadowGenerator: ShadowGenerator): { obstacl
 
 function buildLighting(scene: Scene): ShadowGenerator {
   const hemi = new HemisphericLight("hemi", new Vector3(0.2, 1, 0.1), scene);
-  hemi.intensity = 0.55;
-  hemi.diffuse = new Color3(0.55, 0.65, 0.85);
-  hemi.groundColor = new Color3(0.08, 0.05, 0.12);
+  hemi.intensity = 0.85;
+  hemi.diffuse = new Color3(0.6, 0.7, 0.9);
+  hemi.groundColor = new Color3(0.16, 0.13, 0.22);
 
   const sun = new DirectionalLight("sun", new Vector3(-0.5, -1, 0.35), scene);
-  sun.intensity = 1.1;
-  sun.diffuse = new Color3(0.85, 0.9, 1.0);
+  sun.intensity = 1.35;
+  sun.diffuse = new Color3(0.9, 0.92, 1.0);
   sun.position = new Vector3(30, 40, -30);
 
   const shadowGenerator = new ShadowGenerator(1024, sun);
   shadowGenerator.useBlurExponentialShadowMap = true;
   shadowGenerator.blurKernel = 16;
-  shadowGenerator.darkness = 0.35;
+  shadowGenerator.darkness = 0.3;
 
   const accent1 = new PointLight("accent1", new Vector3(0, 3, 0), scene);
-  accent1.diffuse = new Color3(0.3, 0.6, 1);
-  accent1.intensity = 0.4;
-  accent1.range = 40;
+  accent1.diffuse = new Color3(0.35, 0.65, 1);
+  accent1.intensity = 0.7;
+  accent1.range = 45;
 
   const accent2 = new PointLight("accent2", new Vector3(15, 2.5, -15), scene);
-  accent2.diffuse = new Color3(1, 0.3, 0.4);
-  accent2.intensity = 0.3;
-  accent2.range = 25;
+  accent2.diffuse = new Color3(1, 0.35, 0.45);
+  accent2.intensity = 0.55;
+  accent2.range = 30;
 
   return shadowGenerator;
 }
 
 export function buildArena(scene: Scene): ArenaData {
-  scene.clearColor = new Color4(0.02, 0.03, 0.06, 1);
+  scene.clearColor = new Color4(0.04, 0.05, 0.09, 1);
   scene.fogMode = Scene.FOGMODE_EXP2;
-  scene.fogColor = new Color3(0.06, 0.06, 0.12);
-  scene.fogDensity = 0.012;
+  scene.fogColor = new Color3(0.1, 0.1, 0.2);
+  scene.fogDensity = 0.01;
   scene.collisionsEnabled = false;
 
   buildSky(scene);

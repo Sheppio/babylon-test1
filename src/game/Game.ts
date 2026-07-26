@@ -110,16 +110,16 @@ export class Game {
 
     this.pipeline = new DefaultRenderingPipeline("pipeline", true, this.scene, [this.player.camera]);
     this.pipeline.bloomEnabled = true;
-    this.pipeline.bloomThreshold = 0.55;
-    this.pipeline.bloomWeight = 0.28;
+    this.pipeline.bloomThreshold = 0.45;
+    this.pipeline.bloomWeight = 0.4;
     this.pipeline.bloomKernel = 48;
     this.pipeline.bloomScale = 0.5;
     this.pipeline.fxaaEnabled = true;
     this.pipeline.imageProcessing.vignetteEnabled = true;
-    this.pipeline.imageProcessing.vignetteWeight = 1.2;
+    this.pipeline.imageProcessing.vignetteWeight = 0.5;
     this.pipeline.imageProcessing.vignetteColor = new Color4(0, 0, 0, 1);
-    this.pipeline.imageProcessing.contrast = 1.08;
-    this.pipeline.imageProcessing.exposure = 1.0;
+    this.pipeline.imageProcessing.contrast = 1.1;
+    this.pipeline.imageProcessing.exposure = 1.3;
 
     this.hud.onStart(() => this.startGame());
     this.hud.onRestart(() => this.startGame());
