@@ -1,0 +1,219 @@
+import {
+  Color4,
+  DefaultRenderingPipeline,
+  Engine,
+  GlowLayer,
+  Ray,
+  Scene,
+  Vector3,
+} from "@babylonjs/core";
+import { buildArena } from "./Arena";
+import { SfxEngine } from "./Audio";
+import { hitSpark, muzzleFlash } from "./Effects";
+import { Enemy } from "./Enemy";
+import { HUD } from "./HUD";
+import { PickupManager } from "./Pickups";
+import { PlayerController } from "./PlayerController";
+import { WaveManager } from "./WaveManager";
+import { WeaponView } from "./WeaponView";
+import { FIRE_COOLDOWN, WEAPON_DAMAGE, WEAPON_RANGE } from "./constants";
+
+type GameState = "start" | "playing" | "paused" | "gameover";
+
+const COMBO_WINDOW = 1.6;
+
+export class Game {
+  private engine: Engine;
+  private scene: Scene;
+  private hud = new HUD();
+  private audio = new SfxEngine();
+  private player: PlayerController;
+  private weapon: WeaponView;
+  private waveManager: WaveManager;
+  private pickups: PickupManager;
+
+  private state: GameState = "start";
+  private isFiring = false;
+  private fireCooldown = 0;
+  private score = 0;
+  private kills = 0;
+  private comboCount = 0;
+  private comboClock = -999;
+  private clock = 0;
+  private canvas: HTMLCanvasElement;
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+    this.engine = new Engine(canvas, true, { stencil: true, antialias: true }, true);
+    this.scene = new Scene(this.engine);
+
+    const arena = buildArena(this.scene);
+
+    this.player = new PlayerController(this.scene, canvas, new Vector3(0, 0, 0), arena.obstacles, {
+      onDamage: (_amount, health) => {
+        this.hud.setHealth(health, 100);
+        this.hud.flashDamage();
+        this.audio.playerHurt();
+      },
+      onHeal: (health) => this.hud.setHealth(health, 100),
+      onDeath: () => {
+        this.audio.playerDeath();
+        this.gameOver();
+      },
+      onJump: () => this.audio.jump(),
+    });
+
+    this.weapon = new WeaponView(this.scene, this.player.camera);
+
+    this.waveManager = new WaveManager(this.scene, arena.spawnRing, arena.obstacles, arena.shadowGenerator, {
+      onWaveStart: (wave) => {
+        this.hud.setWave(wave);
+        this.hud.showBanner(`WAVE ${wave}`);
+        this.audio.waveStart();
+      },
+      onWaveClear: (_wave) => {
+        this.hud.showBanner("WAVE CLEARED");
+        this.audio.waveClear();
+        this.player.heal(18);
+        this.pickups.spawnOne();
+      },
+      onEnemyKilled: (_enemy, wave) => this.registerKill(wave),
+      onPlayerHit: (amount) => this.player.takeDamage(amount),
+    });
+
+    this.pickups = new PickupManager(this.scene, arena.obstacles, (amount) => {
+      this.player.heal(amount);
+      this.audio.pickup();
+    });
+
+    const glow = new GlowLayer("glow", this.scene);
+    glow.intensity = 0.5;
+    glow.addExcludedMesh(arena.boundaryWall);
+
+    const pipeline = new DefaultRenderingPipeline("pipeline", true, this.scene, [this.player.camera]);
+    pipeline.bloomEnabled = true;
+    pipeline.bloomThreshold = 0.55;
+    pipeline.bloomWeight = 0.28;
+    pipeline.bloomKernel = 48;
+    pipeline.bloomScale = 0.5;
+    pipeline.fxaaEnabled = true;
+    pipeline.imageProcessing.vignetteEnabled = true;
+    pipeline.imageProcessing.vignetteWeight = 1.2;
+    pipeline.imageProcessing.vignetteColor = new Color4(0, 0, 0, 1);
+    pipeline.imageProcessing.contrast = 1.08;
+    pipeline.imageProcessing.exposure = 1.0;
+
+    this.hud.onStart(() => this.startGame());
+    this.hud.onRestart(() => this.startGame());
+    document.getElementById("pause-screen")?.addEventListener("click", () => {
+      canvas.requestPointerLock();
+    });
+
+    document.addEventListener("pointerlockchange", () => {
+      const locked = document.pointerLockElement === canvas;
+      if (!locked && this.state === "playing") {
+        this.state = "paused";
+        this.hud.showPause();
+      } else if (locked && this.state === "paused") {
+        this.state = "playing";
+        this.hud.hidePause();
+      }
+    });
+
+    window.addEventListener("mousedown", (e) => {
+      if (e.button === 0 && this.state === "playing") this.isFiring = true;
+    });
+    window.addEventListener("mouseup", (e) => {
+      if (e.button === 0) this.isFiring = false;
+    });
+
+    window.addEventListener("resize", () => this.engine.resize());
+
+    this.engine.runRenderLoop(() => {
+      this.update();
+      this.scene.render();
+    });
+
+    this.hud.setReady();
+  }
+
+  private startGame(): void {
+    this.audio.unlock();
+    this.score = 0;
+    this.kills = 0;
+    this.comboCount = 0;
+    this.comboClock = -999;
+    this.clock = 0;
+
+    this.player.reset();
+    this.waveManager.reset();
+    this.pickups.reset();
+    this.waveManager.start();
+
+    this.hud.enterPlaying();
+    this.hud.setHealth(100, 100);
+    this.hud.setScore(0);
+
+    this.state = "playing";
+    this.canvas.requestPointerLock();
+  }
+
+  private gameOver(): void {
+    this.state = "gameover";
+    this.isFiring = false;
+    document.exitPointerLock();
+    this.hud.showGameOver(this.score, this.waveManager.wave, this.kills);
+  }
+
+  private registerKill(wave: number): void {
+    this.kills += 1;
+    if (this.clock - this.comboClock <= COMBO_WINDOW) {
+      this.comboCount += 1;
+    } else {
+      this.comboCount = 1;
+    }
+    this.comboClock = this.clock;
+    const points = 10 * wave * this.comboCount;
+    this.score += points;
+    this.hud.setScore(this.score);
+    this.hud.showCombo(this.comboCount);
+    this.audio.enemyDeath();
+  }
+
+  private fire(): void {
+    this.audio.shoot();
+    this.weapon.triggerRecoil();
+    const cam = this.player.camera;
+    const direction = cam.getDirection(Vector3.Forward());
+    muzzleFlash(this.scene, this.weapon.getMuzzleWorldPosition(), direction);
+
+    const ray = new Ray(cam.globalPosition, direction, WEAPON_RANGE);
+    const pick = this.scene.pickWithRay(ray, (mesh) => mesh.metadata?.type === "enemy");
+    if (pick?.hit && pick.pickedPoint) {
+      const enemy = pick.pickedMesh?.metadata?.ref as Enemy | undefined;
+      if (enemy) {
+        hitSpark(this.scene, pick.pickedPoint);
+        this.hud.showHitmarker();
+        const died = this.waveManager.damageEnemy(enemy, WEAPON_DAMAGE);
+        if (!died) this.audio.enemyHit();
+      }
+    }
+  }
+
+  private update(): void {
+    const dt = Math.min(this.engine.getDeltaTime() / 1000, 0.05);
+    if (this.state !== "playing") return;
+    this.clock += dt;
+
+    this.player.update(dt);
+    this.weapon.update(dt, this.player.isMoving(), this.player.isSprinting());
+    this.waveManager.update(dt, this.player.camera.position);
+    this.pickups.update(dt, this.player.camera.position);
+
+    this.fireCooldown -= dt;
+    if (this.isFiring && this.fireCooldown <= 0) {
+      this.fireCooldown = FIRE_COOLDOWN;
+      this.fire();
+    }
+  }
+}

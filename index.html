@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>ARENA :: Wave Shooter</title>
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+
+    <div id="ui">
+      <div id="crosshair">
+        <span class="ch-dot"></span>
+        <span class="ch-line ch-top"></span>
+        <span class="ch-line ch-bottom"></span>
+        <span class="ch-line ch-left"></span>
+        <span class="ch-line ch-right"></span>
+      </div>
+      <div id="hitmarker"></div>
+
+      <div id="hud">
+        <div id="hud-left">
+          <div class="label">HULL INTEGRITY</div>
+          <div class="bar-track"><div id="health-fill" class="bar-fill"></div></div>
+          <div id="health-text">100 / 100</div>
+        </div>
+        <div id="hud-right">
+          <div id="wave-text">WAVE 1</div>
+          <div id="score-text">SCORE 0</div>
+          <div id="combo-text"></div>
+        </div>
+      </div>
+
+      <div id="ammo-hint">LMB FIRE &nbsp;·&nbsp; WASD MOVE &nbsp;·&nbsp; SPACE JUMP &nbsp;·&nbsp; SHIFT SPRINT</div>
+
+      <div id="banner"></div>
+
+      <div id="vignette"></div>
+      <div id="damage-flash"></div>
+
+      <div id="start-screen" class="overlay">
+        <div class="panel">
+          <h1>ARENA</h1>
+          <h2>WAVE SHOOTER</h2>
+          <p class="tagline">Survive the swarm. Built with Babylon.js.</p>
+          <div class="controls-grid">
+            <div><b>WASD</b><span>Move</span></div>
+            <div><b>Mouse</b><span>Look</span></div>
+            <div><b>Click</b><span>Shoot</span></div>
+            <div><b>Space</b><span>Jump</span></div>
+            <div><b>Shift</b><span>Sprint</span></div>
+            <div><b>Esc</b><span>Release mouse</span></div>
+          </div>
+          <button id="start-btn">CLICK TO DEPLOY</button>
+          <div id="loading-text">Loading engine...</div>
+        </div>
+      </div>
+
+      <div id="pause-screen" class="overlay hidden">
+        <div class="panel">
+          <h2>PAUSED</h2>
+          <p class="tagline">Click to resume</p>
+        </div>
+      </div>
+
+      <div id="gameover-screen" class="overlay hidden">
+        <div class="panel">
+          <h1 class="go-title">SIGNAL LOST</h1>
+          <p class="tagline">Overwhelmed by the swarm.</p>
+          <div class="stats-row">
+            <div><span id="final-score">0</span><label>SCORE</label></div>
+            <div><span id="final-wave">1</span><label>WAVE REACHED</label></div>
+            <div><span id="final-kills">0</span><label>KILLS</label></div>
+          </div>
+          <button id="restart-btn">REDEPLOY</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
