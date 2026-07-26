@@ -39,7 +39,7 @@ if (new URLSearchParams(location.search).has("debug")) {
   }
 
   const params = new URLSearchParams(location.search);
-  const debugFlagNames = ["noground", "flatground", "nofog", "noglow", "nopipeline", "nofrustumcull", "wireframe"];
+  const debugFlagNames = ["noground", "flatground", "nofog", "nopipeline", "nofrustumcull", "wireframe"];
   const activeFlags = debugFlagNames.filter((f) => params.has(f));
   logStatic(`active flags: ${activeFlags.length ? activeFlags.join(", ") : "(none — add e.g. ?debug=1&noground=1 to test)"}`);
 

@@ -4,7 +4,6 @@ import {
   DefaultRenderingPipeline,
   Engine,
   Frustum,
-  GlowLayer,
   Mesh,
   Ray,
   Scene,
@@ -39,7 +38,6 @@ export class Game {
   private waveManager: WaveManager;
   private pickups: PickupManager;
   private ground: Mesh;
-  private glow: GlowLayer;
   private pipeline: DefaultRenderingPipeline;
 
   private state: GameState = "start";
@@ -109,10 +107,6 @@ export class Game {
         },
       );
     }
-
-    this.glow = new GlowLayer("glow", this.scene);
-    this.glow.intensity = 0.5;
-    this.glow.addExcludedMesh(arena.boundaryWall);
 
     this.pipeline = new DefaultRenderingPipeline("pipeline", true, this.scene, [this.player.camera]);
     this.pipeline.bloomEnabled = true;
@@ -215,7 +209,6 @@ export class Game {
       this.ground.material = mat;
     }
     if (flags.has("nofog")) this.scene.fogEnabled = false;
-    if (flags.has("noglow")) this.glow.isEnabled = false;
     if (flags.has("nopipeline")) this.pipeline.dispose();
     if (flags.has("nofrustumcull")) {
       for (const m of this.scene.meshes) m.alwaysSelectAsActiveMesh = true;
